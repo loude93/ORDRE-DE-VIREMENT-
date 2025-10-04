@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { MyAccountDetails } from '../types';
 
@@ -149,6 +150,11 @@ const MyAccount: React.FC<MyAccountProps> = ({ accounts, onUpdateAccount, onDele
             return;
         }
 
+        if (!editedLetterhead) {
+            alert("Le papier à en-tête est obligatoire. Veuillez sélectionner un fichier PDF.");
+            return;
+        }
+
         if (editingAccount) {
             onUpdateAccount({
                 ...editingAccount,
@@ -289,7 +295,7 @@ const MyAccount: React.FC<MyAccountProps> = ({ accounts, onUpdateAccount, onDele
                                         required
                                     />
                                     <FileInput
-                                        label="Papier à en-tête (PDF, optionnel)"
+                                        label="Papier à en-tête (PDF, obligatoire)"
                                         id="edit-letterhead"
                                         fileName={editedLetterhead?.name || ''}
                                         onChange={handleFileChange}
