@@ -1,0 +1,5 @@
+{
+  "name": "RASMAL GROUP Ordre de Virement",
+  "description": "A modern, clean mobile/tablet app interface for generating 'Ordre de Virement' (Bank Transfer Orders). It allows users to create new orders by selecting from a list of managed suppliers.",
+  "requestFramePermissions": []
+}
