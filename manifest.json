@@ -1,0 +1,17 @@
+{
+  "name": "RASMAL GROUP Ordre de Virement",
+  "short_name": "RG Virement",
+  "description": "A modern, clean mobile/tablet app interface for generating 'Ordre de Virement' (Bank Transfer Orders). Now installable for a desktop-like experience and offline access.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#374151",
+  "theme_color": "#374151",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
