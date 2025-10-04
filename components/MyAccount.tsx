@@ -5,6 +5,7 @@ import { MyAccountDetails } from '../types';
 interface MyAccountProps {
   accounts: MyAccountDetails[];
   onUpdateAccount: (account: MyAccountDetails) => void;
+  onDeleteAccount: (accountId: string) => void;
 }
 
 const BankIcon = () => (
@@ -67,7 +68,7 @@ const InputField: React.FC<{
 );
 
 
-const MyAccount: React.FC<MyAccountProps> = ({ accounts, onUpdateAccount }) => {
+const MyAccount: React.FC<MyAccountProps> = ({ accounts, onUpdateAccount, onDeleteAccount }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingAccount, setEditingAccount] = useState<MyAccountDetails | null>(null);
     const [editedRib, setEditedRib] = useState('');
@@ -87,6 +88,12 @@ const MyAccount: React.FC<MyAccountProps> = ({ accounts, onUpdateAccount }) => {
     const handleEditClick = (account: MyAccountDetails) => {
         setEditingAccount(account);
         setIsModalOpen(true);
+    };
+
+    const handleDeleteClick = (account: MyAccountDetails) => {
+        if (window.confirm(`Êtes-vous sûr de vouloir supprimer le compte "${account.companyName}" ? Cette action est irréversible.`)) {
+            onDeleteAccount(account.id);
+        }
     };
 
     const handleCloseModal = () => {
@@ -144,36 +151,51 @@ const MyAccount: React.FC<MyAccountProps> = ({ accounts, onUpdateAccount }) => {
                     .slice()
                     .sort((a, b) => a.companyName.localeCompare(b.companyName))
                     .map((account) => (
-                    <button 
+                    <div 
                         key={account.id} 
-                        onClick={() => handleEditClick(account)}
-                        className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 flex items-start space-x-4 text-left hover:shadow-md hover:border-blue-500 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                        className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 flex flex-col justify-between"
                     >
-                        <div>
-                            <BankIcon />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <h2 className="text-lg font-semibold text-gray-900">{account.companyName}</h2>
-                            <div className="mt-2 space-y-3">
-                                <div>
-                                    <p className="text-sm font-medium text-gray-500">RIB</p>
-                                    <p className="text-md text-gray-800 font-mono bg-gray-100 p-2 rounded-md mt-1 truncate">{account.rib}</p>
-                                </div>
-                                 <div>
-                                    <p className="text-sm font-medium text-gray-500">Nom du Signataire</p>
-                                    <p className="text-md text-gray-800 bg-gray-100 p-2 rounded-md mt-1 truncate">{account.signatoryName}</p>
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium text-gray-500">Adresse Banque</p>
-                                    <p className="text-md text-gray-800 bg-gray-100 p-2 rounded-md mt-1 truncate">{account.bankAddress}</p>
-                                </div>
-                                <div>
-                                    <p className="text-sm font-medium text-gray-500">Papier à en-tête</p>
-                                    <p className="text-md text-gray-800 bg-gray-100 p-2 rounded-md mt-1 truncate">{account.letterhead?.name || 'Non spécifié'}</p>
+                        <div className="flex items-start space-x-4 text-left">
+                            <div>
+                                <BankIcon />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <h2 className="text-lg font-semibold text-gray-900">{account.companyName}</h2>
+                                <div className="mt-2 space-y-3">
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-500">RIB</p>
+                                        <p className="text-md text-gray-800 font-mono bg-gray-100 p-2 rounded-md mt-1 truncate">{account.rib}</p>
+                                    </div>
+                                     <div>
+                                        <p className="text-sm font-medium text-gray-500">Nom du Signataire</p>
+                                        <p className="text-md text-gray-800 bg-gray-100 p-2 rounded-md mt-1 truncate">{account.signatoryName}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-500">Adresse Banque</p>
+                                        <p className="text-md text-gray-800 bg-gray-100 p-2 rounded-md mt-1 truncate">{account.bankAddress}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-500">Papier à en-tête</p>
+                                        <p className="text-md text-gray-800 bg-gray-100 p-2 rounded-md mt-1 truncate">{account.letterhead?.name || 'Non spécifié'}</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </button>
+                        <div className="flex items-center justify-end space-x-3 mt-6 pt-4 border-t border-gray-200">
+                             <button 
+                                onClick={() => handleEditClick(account)}
+                                className="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors"
+                            >
+                                Modifier
+                            </button>
+                            <button 
+                                onClick={() => handleDeleteClick(account)}
+                                className="text-sm font-medium text-red-600 hover:text-red-800 transition-colors"
+                            >
+                                Supprimer
+                            </button>
+                        </div>
+                    </div>
                 ))}
             </div>
 

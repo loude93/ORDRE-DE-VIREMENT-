@@ -53,8 +53,30 @@ const App: React.FC = () => {
   const handleAddSupplier = (newSupplier: Omit<Supplier, 'id'>) => {
     setSuppliers(prevSuppliers => [
       ...prevSuppliers,
-      { ...newSupplier, id: Date.now().toString() }
+      { ...newSupplier, id: `${Date.now()}-${Math.random().toString(36).substring(2, 9)}` }
     ]);
+  };
+
+  const handleBulkAddSuppliers = (newSuppliers: Omit<Supplier, 'id'>[]) => {
+    const suppliersToAdd = newSuppliers.map((supplier, index) => ({
+      ...supplier,
+      id: `${Date.now()}-${index}-${Math.random().toString(36).substring(2, 9)}`,
+    }));
+    setSuppliers(prevSuppliers => [...prevSuppliers, ...suppliersToAdd]);
+  };
+
+  const handleUpdateSupplier = (updatedSupplier: Supplier) => {
+    setSuppliers(prevSuppliers =>
+      prevSuppliers.map(supplier =>
+        supplier.id === updatedSupplier.id ? updatedSupplier : supplier
+      )
+    );
+  };
+  
+  const handleDeleteSupplier = (supplierId: string) => {
+    setSuppliers(prevSuppliers =>
+      prevSuppliers.filter(supplier => supplier.id !== supplierId)
+    );
   };
 
   const handleUpdateAccount = (updatedAccount: MyAccountDetails) => {
@@ -65,14 +87,28 @@ const App: React.FC = () => {
     );
   };
 
+  const handleDeleteAccount = (accountId: string) => {
+    setMyAccounts(prevAccounts =>
+      prevAccounts.filter(account => account.id !== accountId)
+    );
+  };
+
   const renderContent = () => {
     switch (currentPage) {
       case 'newTransfer':
         return <OrdreVirementForm suppliers={suppliers} accounts={myAccounts} />;
       case 'manageSuppliers':
-        return <ManageSuppliers suppliers={suppliers} onAddSupplier={handleAddSupplier} />;
+        return (
+          <ManageSuppliers 
+            suppliers={suppliers} 
+            onAddSupplier={handleAddSupplier}
+            onUpdateSupplier={handleUpdateSupplier}
+            onDeleteSupplier={handleDeleteSupplier}
+            onBulkAddSuppliers={handleBulkAddSuppliers}
+          />
+        );
       case 'myAccount':
-        return <MyAccount accounts={myAccounts} onUpdateAccount={handleUpdateAccount} />;
+        return <MyAccount accounts={myAccounts} onUpdateAccount={handleUpdateAccount} onDeleteAccount={handleDeleteAccount} />;
       default:
         return <OrdreVirementForm suppliers={suppliers} accounts={myAccounts} />;
     }
