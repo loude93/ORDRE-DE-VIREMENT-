@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -13,8 +13,42 @@ type Page = 'newTransfer' | 'manageSuppliers' | 'myAccount';
 
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<Page>('newTransfer');
-  const [suppliers, setSuppliers] = useState<Supplier[]>(SUPPLIERS);
-  const [myAccounts, setMyAccounts] = useState<MyAccountDetails[]>(MY_ACCOUNTS);
+
+  const [suppliers, setSuppliers] = useState<Supplier[]>(() => {
+    try {
+      const storedSuppliers = localStorage.getItem('suppliers');
+      return storedSuppliers ? JSON.parse(storedSuppliers) : SUPPLIERS;
+    } catch (error) {
+      console.error("Failed to load suppliers from localStorage:", error);
+      return SUPPLIERS;
+    }
+  });
+
+  const [myAccounts, setMyAccounts] = useState<MyAccountDetails[]>(() => {
+    try {
+      const storedAccounts = localStorage.getItem('myAccounts');
+      return storedAccounts ? JSON.parse(storedAccounts) : MY_ACCOUNTS;
+    } catch (error) {
+      console.error("Failed to load accounts from localStorage:", error);
+      return MY_ACCOUNTS;
+    }
+  });
+  
+  useEffect(() => {
+    try {
+      localStorage.setItem('suppliers', JSON.stringify(suppliers));
+    } catch (error) {
+      console.error("Failed to save suppliers to localStorage:", error);
+    }
+  }, [suppliers]);
+  
+  useEffect(() => {
+    try {
+      localStorage.setItem('myAccounts', JSON.stringify(myAccounts));
+    } catch (error) {
+      console.error("Failed to save accounts to localStorage:", error);
+    }
+  }, [myAccounts]);
 
   const handleAddSupplier = (newSupplier: Omit<Supplier, 'id'>) => {
     setSuppliers(prevSuppliers => [
