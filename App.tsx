@@ -39,6 +39,7 @@ const App: React.FC = () => {
       localStorage.setItem('suppliers', JSON.stringify(suppliers));
     } catch (error) {
       console.error("Failed to save suppliers to localStorage:", error);
+      alert("Erreur: Impossible de sauvegarder les fournisseurs. Le stockage local est peut-être plein.");
     }
   }, [suppliers]);
   
@@ -47,6 +48,12 @@ const App: React.FC = () => {
       localStorage.setItem('myAccounts', JSON.stringify(myAccounts));
     } catch (error) {
       console.error("Failed to save accounts to localStorage:", error);
+      let errorMessage = "Erreur: Impossible de sauvegarder vos comptes. Le stockage local est peut-être plein.";
+      // Check for QuotaExceededError
+      if (error instanceof DOMException && (error.name === 'QuotaExceededError' || error.name === 'NS_ERROR_DOM_QUOTA_REACHED')) {
+          errorMessage += "\n\nLe fichier PDF pour le papier à en-tête est probablement trop volumineux. Veuillez essayer avec un fichier plus petit.";
+      }
+      alert(errorMessage);
     }
   }, [myAccounts]);
 
@@ -79,6 +86,13 @@ const App: React.FC = () => {
     );
   };
 
+  const handleAddAccount = (newAccount: Omit<MyAccountDetails, 'id'>) => {
+    setMyAccounts(prevAccounts => [
+      ...prevAccounts,
+      { ...newAccount, id: `acc-${Date.now()}-${Math.random().toString(36).substring(2, 9)}` }
+    ]);
+  };
+
   const handleUpdateAccount = (updatedAccount: MyAccountDetails) => {
     setMyAccounts(prevAccounts => 
       prevAccounts.map(account => 
@@ -108,7 +122,12 @@ const App: React.FC = () => {
           />
         );
       case 'myAccount':
-        return <MyAccount accounts={myAccounts} onUpdateAccount={handleUpdateAccount} onDeleteAccount={handleDeleteAccount} />;
+        return <MyAccount 
+          accounts={myAccounts} 
+          onUpdateAccount={handleUpdateAccount} 
+          onDeleteAccount={handleDeleteAccount}
+          onAddAccount={handleAddAccount}
+        />;
       default:
         return <OrdreVirementForm suppliers={suppliers} accounts={myAccounts} />;
     }
