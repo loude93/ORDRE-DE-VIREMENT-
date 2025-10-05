@@ -298,12 +298,39 @@ const OrdreVirementForm: React.FC<OrdreVirementFormProps> = ({ suppliers, accoun
             drawLine(`Montant en chiffres : ${parseFloat(amount).toFixed(2)} ${currency}`, false, true);
             
             // WRAPPING LOGIC FOR AMOUNT IN WORDS
-            const textMaxWidthForAmount = width - LEFT_MARGIN - (1 * CM_TO_POINTS) - 20; // width - left_margin - right_margin - indent
-            const amountInWordsFullText = `Montant en lettres : ${amountInWords}.`;
-            const linesForAmount = breakTextIntoLines(amountInWordsFullText, font, fontSize, textMaxWidthForAmount);
-            linesForAmount.forEach(line => {
-                drawLine(line, false, true);
+            const labelXForAmount = LEFT_MARGIN + 20; // Consistent with drawLine's indent
+            const valueXForAmount = LEFT_MARGIN + 140; // Set a fixed X for the value to align it properly
+            const textMaxWidthForAmount = width - valueXForAmount - (1 * CM_TO_POINTS); // Calculate max width for value
+
+            // Draw the label
+            firstPage.drawText('Montant en lettres :', {
+                x: labelXForAmount,
+                y: yPos,
+                font: font,
+                size: fontSize,
+                color: rgb(0, 0, 0),
             });
+
+            // Prepare and wrap the value text
+            const amountInWordsValue = `${amountInWords}.`;
+            const linesForAmount = breakTextIntoLines(amountInWordsValue, font, fontSize, textMaxWidthForAmount);
+            
+            // Draw each line of the wrapped value
+            linesForAmount.forEach((line, index) => {
+                // The first line of the value shares the Y position of the label.
+                // Subsequent lines get a new, lower Y position.
+                firstPage.drawText(line, {
+                    x: valueXForAmount,
+                    y: yPos,
+                    font: font,
+                    size: fontSize,
+                    color: rgb(0, 0, 0),
+                });
+                if (index < linesForAmount.length - 1) {
+                    yPos -= lineHeight; // Decrement Y for the next line of text
+                }
+            });
+            yPos -= lineHeight; // Decrement Y to move below the amount in words block
             
             yPos -= lineHeight;
 
