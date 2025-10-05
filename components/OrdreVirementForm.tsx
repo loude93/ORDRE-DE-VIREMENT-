@@ -5,6 +5,32 @@ import { Supplier, MyAccountDetails } from '../types';
 
 declare const window: any;
 
+// Helper for text wrapping in PDF
+const breakTextIntoLines = (text: string, font: any, fontSize: number, maxWidth: number): string[] => {
+    const words = text.split(' ');
+    if (!words.length) return [];
+
+    const lines: string[] = [];
+    let currentLine = words[0] || '';
+
+    for (let i = 1; i < words.length; i++) {
+        const word = words[i];
+        const testLine = `${currentLine} ${word}`;
+        const width = font.widthOfTextAtSize(testLine, fontSize);
+        if (width < maxWidth) {
+            currentLine = testLine;
+        } else {
+            lines.push(currentLine);
+            currentLine = word;
+        }
+    }
+    if (currentLine) {
+        lines.push(currentLine);
+    }
+    return lines;
+};
+
+
 const FormSection: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
   <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
     <h2 className="text-lg font-semibold text-gray-700 border-b border-gray-200 pb-3 mb-4">{title}</h2>
@@ -270,7 +296,15 @@ const OrdreVirementForm: React.FC<OrdreVirementFormProps> = ({ suppliers, accoun
             yPos -= lineHeight;
             
             drawLine(`Montant en chiffres : ${parseFloat(amount).toFixed(2)} ${currency}`, false, true);
-            drawLine(`Montant en lettres : ${amountInWords}.`, false, true);
+            
+            // WRAPPING LOGIC FOR AMOUNT IN WORDS
+            const textMaxWidthForAmount = width - LEFT_MARGIN - (1 * CM_TO_POINTS) - 20; // width - left_margin - right_margin - indent
+            const amountInWordsFullText = `Montant en lettres : ${amountInWords}.`;
+            const linesForAmount = breakTextIntoLines(amountInWordsFullText, font, fontSize, textMaxWidthForAmount);
+            linesForAmount.forEach(line => {
+                drawLine(line, false, true);
+            });
+            
             yPos -= lineHeight;
 
             drawLine(`Motif : ${purpose}`, false, true);
@@ -357,8 +391,24 @@ const OrdreVirementForm: React.FC<OrdreVirementFormProps> = ({ suppliers, accoun
             page.drawText('Montant en chiffres :', { x: margin + 20, y: currentY, font: font, size: baseFontSize });
             page.drawText(`${parseFloat(amount).toFixed(2)} ${currency}`, { x: margin + 150, y: currentY, font: boldFont, size: baseFontSize });
             currentY -= lineHeight;
+            
+            // WRAPPING LOGIC FOR AMOUNT IN WORDS
             page.drawText('Montant en lettres :', { x: margin + 20, y: currentY, font: font, size: baseFontSize });
-            page.drawText(`${amountInWords}.`, { x: margin + 150, y: currentY, font: boldFont, size: baseFontSize });
+            const valueMaxWidth = width - (margin + 150) - margin;
+            const amountInWordsValue = `${amountInWords}.`;
+            const amountLines = breakTextIntoLines(amountInWordsValue, boldFont, baseFontSize, valueMaxWidth);
+            amountLines.forEach((line, index) => {
+                page.drawText(line, {
+                    x: margin + 150,
+                    y: currentY,
+                    font: boldFont,
+                    size: baseFontSize,
+                    color: rgb(0, 0, 0),
+                });
+                if (index < amountLines.length - 1) {
+                    currentY -= lineHeight;
+                }
+            });
             currentY -= lineHeight * 2;
             
             page.drawText('Motif :', { x: margin + 20, y: currentY, font: font, size: baseFontSize });
