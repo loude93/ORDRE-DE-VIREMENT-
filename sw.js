@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rasmal-group-virement-v3'; // Bumped version
+const CACHE_NAME = 'rasmal-group-virement-v4'; // Bumped version
 const urlsToCache = [
   '/',
   '/index.html',
