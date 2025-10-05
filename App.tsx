@@ -7,7 +7,7 @@ import OrdreVirementForm from './components/OrdreVirementForm';
 import ManageSuppliers from './components/ManageSuppliers';
 import MyAccount from './components/MyAccount';
 import { SUPPLIERS, MY_ACCOUNTS } from './constants';
-import { Supplier, MyAccountDetails } from './types';
+import { Supplier, MyAccountDetails, AppDataBackup } from './types';
 
 type Page = 'newTransfer' | 'manageSuppliers' | 'myAccount';
 
@@ -107,6 +107,16 @@ const App: React.FC = () => {
       prevAccounts.filter(account => account.id !== accountId)
     );
   };
+  
+  const handleImportData = (data: AppDataBackup) => {
+    if (data && Array.isArray(data.suppliers) && Array.isArray(data.myAccounts)) {
+      setSuppliers(data.suppliers);
+      setMyAccounts(data.myAccounts);
+      alert('Données importées avec succès !');
+    } else {
+      alert("Erreur: Le fichier de sauvegarde est invalide ou corrompu.");
+    }
+  };
 
   const handleNavigate = (page: Page) => {
     setCurrentPage(page);
@@ -129,10 +139,12 @@ const App: React.FC = () => {
         );
       case 'myAccount':
         return <MyAccount 
-          accounts={myAccounts} 
+          accounts={myAccounts}
+          suppliers={suppliers}
           onUpdateAccount={handleUpdateAccount} 
           onDeleteAccount={handleDeleteAccount}
           onAddAccount={handleAddAccount}
+          onImportData={handleImportData}
         />;
       default:
         return <OrdreVirementForm suppliers={suppliers} accounts={myAccounts} />;

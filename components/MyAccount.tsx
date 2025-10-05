@@ -1,14 +1,17 @@
 
 
 
-import React, { useState, useEffect } from 'react';
-import { MyAccountDetails } from '../types';
+
+import React, { useState, useEffect, useRef } from 'react';
+import { MyAccountDetails, Supplier, AppDataBackup } from '../types';
 
 interface MyAccountProps {
   accounts: MyAccountDetails[];
+  suppliers: Supplier[];
   onUpdateAccount: (account: MyAccountDetails) => void;
   onDeleteAccount: (accountId: string) => void;
   onAddAccount: (account: Omit<MyAccountDetails, 'id'>) => void;
+  onImportData: (data: AppDataBackup) => void;
 }
 
 const BankIcon = () => (
@@ -20,6 +23,18 @@ const BankIcon = () => (
 const PlusIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+    </svg>
+);
+
+const ExportIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+    </svg>
+);
+
+const ImportIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
     </svg>
 );
 
@@ -80,7 +95,7 @@ const InputField: React.FC<{
 );
 
 
-const MyAccount: React.FC<MyAccountProps> = ({ accounts, onUpdateAccount, onDeleteAccount, onAddAccount }) => {
+const MyAccount: React.FC<MyAccountProps> = ({ accounts, suppliers, onUpdateAccount, onDeleteAccount, onAddAccount, onImportData }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingAccount, setEditingAccount] = useState<MyAccountDetails | null>(null);
     const [editedCompanyName, setEditedCompanyName] = useState('');
@@ -88,6 +103,7 @@ const MyAccount: React.FC<MyAccountProps> = ({ accounts, onUpdateAccount, onDele
     const [editedBankAddress, setEditedBankAddress] = useState('');
     const [editedSignatoryName, setEditedSignatoryName] = useState('');
     const [editedLetterhead, setEditedLetterhead] = useState<MyAccountDetails['letterhead']>(undefined);
+    const importFileRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         if (editingAccount) {
@@ -179,6 +195,62 @@ const MyAccount: React.FC<MyAccountProps> = ({ accounts, onUpdateAccount, onDele
         }
         handleCloseModal();
     };
+    
+    const handleExport = () => {
+        try {
+            const dataToExport: AppDataBackup = {
+                myAccounts: accounts,
+                suppliers: suppliers,
+            };
+            const jsonString = JSON.stringify(dataToExport, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            const date = new Date().toISOString().slice(0, 10);
+            link.download = `sauvegarde_rasmal_group_${date}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error("Failed to export data:", error);
+            alert("Une erreur est survenue lors de l'exportation des données.");
+        }
+    };
+
+    const handleImportClick = () => {
+        importFileRef.current?.click();
+    };
+
+    const handleImportFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const text = event.target?.result as string;
+                const data: AppDataBackup = JSON.parse(text);
+
+                if (data && Array.isArray(data.myAccounts) && Array.isArray(data.suppliers)) {
+                    if (window.confirm("Voulez-vous vraiment importer ces données ? Cela écrasera toutes les données existantes (comptes et fournisseurs). Cette action est irréversible.")) {
+                        onImportData(data);
+                    }
+                } else {
+                    throw new Error("Invalid file structure.");
+                }
+            } catch (error) {
+                console.error("Failed to import data:", error);
+                alert("Erreur: Le fichier de sauvegarde est invalide ou corrompu. Impossible d'importer les données.");
+            } finally {
+                if (e.target) {
+                    e.target.value = '';
+                }
+            }
+        };
+        reader.readAsText(file);
+    };
 
     return (
         <div className="space-y-6 max-w-4xl mx-auto">
@@ -194,6 +266,38 @@ const MyAccount: React.FC<MyAccountProps> = ({ accounts, onUpdateAccount, onDele
                 </button>
             </div>
             
+            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                <h2 className="text-lg font-semibold text-gray-700 border-b border-gray-200 pb-3 mb-4">Importer / Exporter les Données</h2>
+                <p className="text-sm text-gray-600 mb-4">
+                    Sauvegardez vos données (comptes et fournisseurs) dans un fichier pour les transférer sur un autre navigateur ou pour les conserver en sécurité.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4">
+                    <input
+                        type="file"
+                        ref={importFileRef}
+                        onChange={handleImportFileChange}
+                        className="hidden"
+                        accept="application/json,.json"
+                    />
+                    <button
+                        type="button"
+                        onClick={handleImportClick}
+                        className="flex-1 bg-gray-200 text-gray-700 font-bold py-3 px-4 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 transition-colors duration-200 flex items-center justify-center space-x-2"
+                    >
+                        <ImportIcon />
+                        <span>Importer les Données</span>
+                    </button>
+                    <button
+                        type="button"
+                        onClick={handleExport}
+                        className="flex-1 bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200 flex items-center justify-center space-x-2"
+                    >
+                        <ExportIcon />
+                        <span>Exporter les Données</span>
+                    </button>
+                </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {accounts
                     .slice()
@@ -238,7 +342,7 @@ const MyAccount: React.FC<MyAccountProps> = ({ accounts, onUpdateAccount, onDele
                             </button>
                             <button 
                                 onClick={() => handleDeleteClick(account)}
-                                className="text-sm font-medium text-red-600 hover:text-red-800 transition-colors"
+                                className="text-sm font-medium text-red-600 hover:red-800 transition-colors"
                             >
                                 Supprimer
                             </button>

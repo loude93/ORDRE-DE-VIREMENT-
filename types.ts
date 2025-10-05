@@ -16,3 +16,8 @@ export interface MyAccountDetails {
     dataUrl: string;
   };
 }
+
+export interface AppDataBackup {
+  suppliers: Supplier[];
+  myAccounts: MyAccountDetails[];
+}
