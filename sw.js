@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rasmal-group-virement-v1';
+const CACHE_NAME = 'rasmal-group-virement-v3'; // Bumped version
 const urlsToCache = [
   '/',
   '/index.html',
@@ -33,7 +33,7 @@ self.addEventListener('fetch', event => {
   
   if (event.request.mode === 'navigate') {
     event.respondWith(
-      fetch(event.request).catch(() => caches.match(event.request))
+      fetch(event.request).catch(() => caches.match('/index.html')) // Fallback to index.html
     );
     return;
   }
@@ -41,18 +41,13 @@ self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request)
       .then(response => {
-        if (response) {
-          return response;
-        }
-
-        return fetch(event.request).then(
+        return response || fetch(event.request).then(
           response => {
             if (!response || response.status !== 200 || response.type !== 'basic') {
               return response;
             }
 
             const responseToCache = response.clone();
-
             caches.open(CACHE_NAME)
               .then(cache => {
                 cache.put(event.request, responseToCache);

@@ -1,4 +1,3 @@
-
 export interface Supplier {
   id: string;
   name: string;
@@ -17,9 +16,10 @@ export interface MyAccountDetails {
   };
 }
 
+// This is now legacy, kept for potential future use, but not core to the app logic.
 export interface AppDataBackup {
-  version: number;
-  timestamp: string;
-  suppliers: Supplier[];
-  myAccounts: MyAccountDetails[];
+  version?: number;
+  timestamp?: string;
+  suppliers?: Supplier[];
+  myAccounts?: MyAccountDetails[];
 }

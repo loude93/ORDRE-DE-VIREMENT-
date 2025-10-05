@@ -1,10 +1,7 @@
-
-// FIX: Importing React is necessary for JSX syntax and to use React types.
 import React from 'react';
 
 type Page = 'newTransfer' | 'manageSuppliers' | 'myAccount';
 
-// FIX: Changed JSX.Element to React.ReactElement to resolve "Cannot find namespace 'JSX'" error.
 const NavItem: React.FC<{ icon: React.ReactElement; label: string; active?: boolean; onClick: () => void; }> = ({ icon, label, active, onClick }) => {
   const baseClasses = "flex items-center space-x-3 p-3 rounded-lg transition-colors duration-200 cursor-pointer w-full text-left";
   const activeClasses = "bg-blue-600 text-white";

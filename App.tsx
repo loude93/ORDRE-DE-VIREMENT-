@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
@@ -6,135 +5,115 @@ import Footer from './components/Footer';
 import OrdreVirementForm from './components/OrdreVirementForm';
 import ManageSuppliers from './components/ManageSuppliers';
 import MyAccount from './components/MyAccount';
-import { SUPPLIERS, MY_ACCOUNTS } from './constants';
 import { Supplier, MyAccountDetails, AppDataBackup } from './types';
+import { INITIAL_ACCOUNTS, INITIAL_SUPPLIERS } from './constants';
 
 type Page = 'newTransfer' | 'manageSuppliers' | 'myAccount';
+
+// Helper to get initial state from localStorage or seed with default data
+const getInitialState = <T extends { id: string }>(key: string, defaultValue: Omit<T, 'id'>[]): T[] => {
+  try {
+    const storedValue = localStorage.getItem(key);
+    if (storedValue) {
+      // Basic validation to ensure it's an array
+      const parsed = JSON.parse(storedValue);
+      return Array.isArray(parsed) ? parsed : [];
+    }
+    // If no stored value, create initial data with UUIDs
+    const initialData = defaultValue.map(item => ({ ...item, id: crypto.randomUUID() })) as T[];
+    localStorage.setItem(key, JSON.stringify(initialData));
+    return initialData;
+  } catch (error) {
+    console.error(`Error reading from localStorage for key "${key}":`, error);
+    // Fallback to default in case of error
+    return defaultValue.map(item => ({ ...item, id: crypto.randomUUID() })) as T[];
+  }
+};
+
 
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<Page>('newTransfer');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const [suppliers, setSuppliers] = useState<Supplier[]>(() => {
-    try {
-      const storedSuppliers = localStorage.getItem('suppliers');
-      return storedSuppliers ? JSON.parse(storedSuppliers) : SUPPLIERS;
-    } catch (error) {
-      console.error("Failed to load suppliers from localStorage:", error);
-      return SUPPLIERS;
-    }
-  });
+  const [suppliers, setSuppliers] = useState<Supplier[]>(() => getInitialState<Supplier>('suppliers', INITIAL_SUPPLIERS));
+  const [myAccounts, setMyAccounts] = useState<MyAccountDetails[]>(() => getInitialState<MyAccountDetails>('myAccounts', INITIAL_ACCOUNTS));
 
-  const [myAccounts, setMyAccounts] = useState<MyAccountDetails[]>(() => {
-    try {
-      const storedAccounts = localStorage.getItem('myAccounts');
-      return storedAccounts ? JSON.parse(storedAccounts) : MY_ACCOUNTS;
-    } catch (error) {
-      console.error("Failed to load accounts from localStorage:", error);
-      return MY_ACCOUNTS;
-    }
-  });
-  
+  // Effect to save suppliers to localStorage whenever they change
   useEffect(() => {
     try {
-      localStorage.setItem('suppliers', JSON.stringify(suppliers));
+        localStorage.setItem('suppliers', JSON.stringify(suppliers));
     } catch (error) {
-      console.error("Failed to save suppliers to localStorage:", error);
-      alert("Erreur: Impossible de sauvegarder les fournisseurs. Le stockage local est peut-être plein.");
+        console.error("Failed to save suppliers to localStorage:", error);
+        alert("Erreur: Impossible de sauvegarder les fournisseurs. Le stockage local est peut-être plein.");
     }
   }, [suppliers]);
-  
+
+  // Effect to save accounts to localStorage whenever they change
   useEffect(() => {
     try {
-      localStorage.setItem('myAccounts', JSON.stringify(myAccounts));
+        localStorage.setItem('myAccounts', JSON.stringify(myAccounts));
     } catch (error) {
-      console.error("Failed to save accounts to localStorage:", error);
-      let errorMessage = "Erreur: Impossible de sauvegarder vos comptes. Le stockage local est peut-être plein.";
-      // Check for QuotaExceededError
-      if (error instanceof DOMException && (error.name === 'QuotaExceededError' || error.name === 'NS_ERROR_DOM_QUOTA_REACHED')) {
-          errorMessage += "\n\nLe fichier PDF pour le papier à en-tête est probablement trop volumineux. Veuillez essayer avec un fichier plus petit.";
-      }
-      alert(errorMessage);
+        console.error("Failed to save myAccounts to localStorage:", error);
+        alert("Erreur: Impossible de sauvegarder les comptes. Le stockage local est peut-être plein.");
     }
   }, [myAccounts]);
-
+  
   const handleAddSupplier = (newSupplier: Omit<Supplier, 'id'>) => {
-    setSuppliers(prevSuppliers => [
-      ...prevSuppliers,
-      { ...newSupplier, id: `${Date.now()}-${Math.random().toString(36).substring(2, 9)}` }
-    ]);
+    setSuppliers(prev => [...prev, { ...newSupplier, id: crypto.randomUUID() }]);
   };
-
+  
   const handleBulkAddSuppliers = (newSuppliers: Omit<Supplier, 'id'>[]) => {
-    const suppliersToAdd = newSuppliers.map((supplier, index) => ({
-      ...supplier,
-      id: `${Date.now()}-${index}-${Math.random().toString(36).substring(2, 9)}`,
-    }));
-    setSuppliers(prevSuppliers => [...prevSuppliers, ...suppliersToAdd]);
+    const suppliersWithIds = newSuppliers.map(s => ({ ...s, id: crypto.randomUUID() }));
+    setSuppliers(prev => [...prev, ...suppliersWithIds]);
   };
 
   const handleUpdateSupplier = (updatedSupplier: Supplier) => {
-    setSuppliers(prevSuppliers =>
-      prevSuppliers.map(supplier =>
-        supplier.id === updatedSupplier.id ? updatedSupplier : supplier
-      )
-    );
+    setSuppliers(prev => prev.map(s => s.id === updatedSupplier.id ? updatedSupplier : s));
   };
   
   const handleDeleteSupplier = (supplierId: string) => {
-    setSuppliers(prevSuppliers =>
-      prevSuppliers.filter(supplier => supplier.id !== supplierId)
-    );
+    setSuppliers(prev => prev.filter(s => s.id !== supplierId));
   };
 
   const handleAddAccount = (newAccount: Omit<MyAccountDetails, 'id'>) => {
-    setMyAccounts(prevAccounts => [
-      ...prevAccounts,
-      { ...newAccount, id: `acc-${Date.now()}-${Math.random().toString(36).substring(2, 9)}` }
-    ]);
+    setMyAccounts(prev => [...prev, { ...newAccount, id: crypto.randomUUID() }]);
   };
 
   const handleUpdateAccount = (updatedAccount: MyAccountDetails) => {
-    setMyAccounts(prevAccounts => 
-      prevAccounts.map(account => 
-        account.id === updatedAccount.id ? updatedAccount : account
-      )
-    );
+    setMyAccounts(prev => prev.map(a => a.id === updatedAccount.id ? updatedAccount : a));
   };
 
   const handleDeleteAccount = (accountId: string) => {
-    setMyAccounts(prevAccounts =>
-      prevAccounts.filter(account => account.id !== accountId)
-    );
+    setMyAccounts(prev => prev.filter(a => a.id !== accountId));
   };
   
   const handleImportData = (data: AppDataBackup) => {
-    if (!data || !Array.isArray(data.suppliers) || !Array.isArray(data.myAccounts)) {
+    if (!data || typeof data !== 'object') {
       alert("Erreur: Le fichier de sauvegarde est invalide ou corrompu.");
       return;
     }
 
-    try {
-      const suppliersJson = JSON.stringify(data.suppliers);
-      const myAccountsJson = JSON.stringify(data.myAccounts);
+    const { suppliers: importedSuppliers, myAccounts: importedAccounts, version } = data;
 
-      // Save to localStorage first. If this fails, the state won't be updated.
-      localStorage.setItem('suppliers', suppliersJson);
-      localStorage.setItem('myAccounts', myAccountsJson);
+    if (version !== 1) {
+      alert(`Avertissement: La version du fichier de sauvegarde (v${version || 'inconnue'}) n'est pas prise en charge.`);
+      // Continue for now, but in the future, you might want to stop here or run a migration.
+    }
 
-      // If storage is successful, update the state to reflect the changes in the UI.
-      setSuppliers(data.suppliers);
-      setMyAccounts(data.myAccounts);
+    let importSuccess = false;
+    if (Array.isArray(importedSuppliers)) {
+      setSuppliers(importedSuppliers);
+      importSuccess = true;
+    }
+    if (Array.isArray(importedAccounts)) {
+      setMyAccounts(importedAccounts);
+      importSuccess = true;
+    }
 
-      alert('Données importées avec succès !');
-
-    } catch (error) {
-      console.error("Failed to import and save data:", error);
-      let errorMessage = "Erreur: Impossible d'importer les données. Le stockage local est peut-être plein.";
-      if (error instanceof DOMException && (error.name === 'QuotaExceededError' || error.name === 'NS_ERROR_DOM_QUOTA_REACHED')) {
-          errorMessage += "\n\nLa cause est probablement un fichier PDF trop volumineux (papier à en-tête) dans l'un des comptes.";
-      }
-      alert(errorMessage);
+    if(importSuccess) {
+      alert("Les données ont été importées avec succès !");
+    } else {
+      alert("Aucune donnée valide à importer n'a été trouvée dans le fichier.");
     }
   };
 
@@ -161,10 +140,10 @@ const App: React.FC = () => {
       case 'myAccount':
         return <MyAccount 
           accounts={myAccounts}
-          suppliers={suppliers}
           onUpdateAccount={handleUpdateAccount} 
           onDeleteAccount={handleDeleteAccount}
           onAddAccount={handleAddAccount}
+          suppliers={suppliers}
           onImportData={handleImportData}
         />;
       default:

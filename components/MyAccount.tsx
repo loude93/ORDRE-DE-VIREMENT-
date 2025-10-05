@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { MyAccountDetails, Supplier, AppDataBackup } from '../types';
 
@@ -102,6 +101,7 @@ const MyAccount: React.FC<MyAccountProps> = ({ accounts, suppliers, onUpdateAcco
     const [editedLetterhead, setEditedLetterhead] = useState<MyAccountDetails['letterhead']>(undefined);
     const importFileRef = useRef<HTMLInputElement>(null);
 
+
     useEffect(() => {
         if (editingAccount) {
             setEditedCompanyName(editingAccount.companyName);
@@ -193,24 +193,24 @@ const MyAccount: React.FC<MyAccountProps> = ({ accounts, suppliers, onUpdateAcco
         handleCloseModal();
     };
     
-    const handleExport = () => {
+    const handleExportData = () => {
         try {
             const dataToExport: AppDataBackup = {
                 version: 1,
                 timestamp: new Date().toISOString(),
+                suppliers,
                 myAccounts: accounts,
-                suppliers: suppliers,
             };
             const jsonString = JSON.stringify(dataToExport, null, 2);
             const blob = new Blob([jsonString], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
+            const a = document.createElement('a');
+            a.href = url;
             const date = new Date().toISOString().slice(0, 10);
-            link.download = `sauvegarde_rasmal_group_${date}.json`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            a.download = `rasmal_group_virement_backup_${date}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
             URL.revokeObjectURL(url);
         } catch (error) {
             console.error("Failed to export data:", error);
@@ -221,39 +221,32 @@ const MyAccount: React.FC<MyAccountProps> = ({ accounts, suppliers, onUpdateAcco
     const handleImportClick = () => {
         importFileRef.current?.click();
     };
-
-    const handleImportFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
+    
+    const handleImportFileSelected = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
         if (!file) return;
 
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            try {
-                const text = event.target?.result as string;
-                const data = JSON.parse(text) as Partial<AppDataBackup>;
-
-                if (data && data.version === 1 && Array.isArray(data.myAccounts) && Array.isArray(data.suppliers)) {
-                    if (window.confirm("Vous êtes sur le point de remplacer TOUTES les données actuelles (comptes et fournisseurs) par le contenu de ce fichier. Cette action est irréversible. Voulez-vous continuer ?")) {
-                        onImportData(data as AppDataBackup);
-                    }
-                } else {
-                    if (data && data.version !== 1) {
-                        alert("Erreur: Le fichier de sauvegarde provient d'une version incompatible de l'application.");
-                    } else {
-                        alert("Erreur: Le fichier de sauvegarde est invalide ou corrompu. Structure de données incorrecte.");
+        if (window.confirm("Êtes-vous sûr de vouloir importer ces données ? Cela remplacera toutes les données actuelles (comptes et fournisseurs).")) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const text = e.target?.result as string;
+                    const data = JSON.parse(text);
+                    onImportData(data);
+                } catch (error) {
+                    console.error("Failed to parse import file:", error);
+                    alert("Erreur: Le fichier de sauvegarde est invalide ou corrompu et n'a pas pu être lu.");
+                } finally {
+                    // Reset file input to allow importing the same file again
+                    if (event.target) {
+                        event.target.value = '';
                     }
                 }
-            } catch (error) {
-                console.error("Failed to import data:", error);
-                alert("Erreur: Impossible de lire le fichier. Assurez-vous qu'il s'agit d'un fichier de sauvegarde JSON valide et non corrompu.");
-            } finally {
-                if (e.target) {
-                    e.target.value = '';
-                }
-            }
-        };
-        reader.readAsText(file);
+            };
+            reader.readAsText(file);
+        }
     };
+
 
     return (
         <div className="space-y-6 max-w-4xl mx-auto">
@@ -269,31 +262,92 @@ const MyAccount: React.FC<MyAccountProps> = ({ accounts, suppliers, onUpdateAcco
                 </button>
             </div>
             
-            <div className="bg-gray-50 p-6 rounded-lg shadow-sm border border-gray-200">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {accounts.length > 0 ? (
+                    accounts
+                        .slice()
+                        .sort((a, b) => a.companyName.localeCompare(b.companyName))
+                        .map((account) => (
+                        <div 
+                            key={account.id} 
+                            className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 flex flex-col justify-between"
+                        >
+                            <div className="flex items-start space-x-4 text-left">
+                                <div>
+                                    <BankIcon />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <h2 className="text-lg font-semibold text-gray-900">{account.companyName}</h2>
+                                    <div className="mt-2 space-y-3">
+                                        <div>
+                                            <p className="text-sm font-medium text-gray-500">RIB</p>
+                                            <p className="text-md text-gray-800 font-mono bg-gray-100 p-2 rounded-md mt-1 truncate">{account.rib}</p>
+                                        </div>
+                                         <div>
+                                            <p className="text-sm font-medium text-gray-500">Nom du Signataire</p>
+                                            <p className="text-md text-gray-800 bg-gray-100 p-2 rounded-md mt-1 truncate">{account.signatoryName}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-medium text-gray-500">Adresse Banque</p>
+                                            <p className="text-md text-gray-800 bg-gray-100 p-2 rounded-md mt-1 truncate">{account.bankAddress}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-medium text-gray-500">Papier à en-tête</p>
+                                            <p className="text-md text-gray-800 bg-gray-100 p-2 rounded-md mt-1 truncate">{account.letterhead?.name || 'Non spécifié'}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="flex items-center justify-end space-x-3 mt-6 pt-4 border-t border-gray-200">
+                                 <button 
+                                    onClick={() => handleEditClick(account)}
+                                    className="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors"
+                                >
+                                    Modifier
+                                </button>
+                                <button 
+                                    onClick={() => handleDeleteClick(account)}
+                                    className="text-sm font-medium text-red-600 hover:red-800 transition-colors"
+                                >
+                                    Supprimer
+                                </button>
+                            </div>
+                        </div>
+                    ))
+                ) : (
+                    <div className="md:col-span-2 bg-white p-8 rounded-lg shadow-sm border border-gray-200 text-center">
+                        <h2 className="text-lg font-semibold text-gray-700">Aucun compte trouvé</h2>
+                        <p className="mt-2 text-sm text-gray-500">Commencez par ajouter une société pour créer des ordres de virement.</p>
+                    </div>
+                )}
+            </div>
+            
+             {/* Data Import/Export Section */}
+            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 mt-8">
                 <h2 className="text-lg font-semibold text-gray-700 border-b border-gray-200 pb-3 mb-4">Sauvegarde et Transfert de Données</h2>
                 <p className="text-sm text-gray-600 mb-4">
-                    Les données de cette application sont sauvegardées uniquement dans votre navigateur actuel. Pour utiliser vos données sur un autre navigateur ou un autre ordinateur, vous devez d'abord les <strong>exporter</strong> dans un fichier, puis les <strong>importer</strong> sur le nouvel appareil.
+                    Utilisez ces options pour sauvegarder toutes vos données (comptes et fournisseurs) dans un fichier, ou pour restaurer vos données depuis une sauvegarde. C'est utile pour transférer vos informations vers un autre navigateur ou un autre ordinateur.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
                     <input
                         type="file"
                         ref={importFileRef}
-                        onChange={handleImportFileChange}
+                        onChange={handleImportFileSelected}
                         className="hidden"
                         accept="application/json,.json"
                     />
                     <button
                         type="button"
                         onClick={handleImportClick}
-                        className="flex-1 bg-gray-200 text-gray-700 font-bold py-3 px-4 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 transition-colors duration-200 flex items-center justify-center space-x-2"
+                        className="flex-1 bg-gray-200 text-gray-700 font-bold py-3 px-4 rounded-lg hover:bg-gray-300 transition-colors flex items-center justify-center space-x-2"
                     >
                         <ImportIcon />
                         <span>Importer les Données</span>
                     </button>
                     <button
                         type="button"
-                        onClick={handleExport}
-                        className="flex-1 bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200 flex items-center justify-center space-x-2"
+                        onClick={handleExportData}
+                        className="flex-1 bg-blue-100 text-blue-800 font-bold py-3 px-4 rounded-lg hover:bg-blue-200 transition-colors flex items-center justify-center space-x-2"
                     >
                         <ExportIcon />
                         <span>Exporter les Données</span>
@@ -301,58 +355,6 @@ const MyAccount: React.FC<MyAccountProps> = ({ accounts, suppliers, onUpdateAcco
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {accounts
-                    .slice()
-                    .sort((a, b) => a.companyName.localeCompare(b.companyName))
-                    .map((account) => (
-                    <div 
-                        key={account.id} 
-                        className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 flex flex-col justify-between"
-                    >
-                        <div className="flex items-start space-x-4 text-left">
-                            <div>
-                                <BankIcon />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <h2 className="text-lg font-semibold text-gray-900">{account.companyName}</h2>
-                                <div className="mt-2 space-y-3">
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-500">RIB</p>
-                                        <p className="text-md text-gray-800 font-mono bg-gray-100 p-2 rounded-md mt-1 truncate">{account.rib}</p>
-                                    </div>
-                                     <div>
-                                        <p className="text-sm font-medium text-gray-500">Nom du Signataire</p>
-                                        <p className="text-md text-gray-800 bg-gray-100 p-2 rounded-md mt-1 truncate">{account.signatoryName}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-500">Adresse Banque</p>
-                                        <p className="text-md text-gray-800 bg-gray-100 p-2 rounded-md mt-1 truncate">{account.bankAddress}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-500">Papier à en-tête</p>
-                                        <p className="text-md text-gray-800 bg-gray-100 p-2 rounded-md mt-1 truncate">{account.letterhead?.name || 'Non spécifié'}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="flex items-center justify-end space-x-3 mt-6 pt-4 border-t border-gray-200">
-                             <button 
-                                onClick={() => handleEditClick(account)}
-                                className="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors"
-                            >
-                                Modifier
-                            </button>
-                            <button 
-                                onClick={() => handleDeleteClick(account)}
-                                className="text-sm font-medium text-red-600 hover:red-800 transition-colors"
-                            >
-                                Supprimer
-                            </button>
-                        </div>
-                    </div>
-                ))}
-            </div>
 
             {isModalOpen && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4 animate-fade-in-down" style={{animationDuration: '0.3s'}}>
