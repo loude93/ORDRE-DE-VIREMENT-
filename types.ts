@@ -18,6 +18,8 @@ export interface MyAccountDetails {
 }
 
 export interface AppDataBackup {
+  version: number;
+  timestamp: string;
   suppliers: Supplier[];
   myAccounts: MyAccountDetails[];
 }

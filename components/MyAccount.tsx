@@ -1,7 +1,4 @@
 
-
-
-
 import React, { useState, useEffect, useRef } from 'react';
 import { MyAccountDetails, Supplier, AppDataBackup } from '../types';
 
@@ -199,6 +196,8 @@ const MyAccount: React.FC<MyAccountProps> = ({ accounts, suppliers, onUpdateAcco
     const handleExport = () => {
         try {
             const dataToExport: AppDataBackup = {
+                version: 1,
+                timestamp: new Date().toISOString(),
                 myAccounts: accounts,
                 suppliers: suppliers,
             };
@@ -231,18 +230,22 @@ const MyAccount: React.FC<MyAccountProps> = ({ accounts, suppliers, onUpdateAcco
         reader.onload = (event) => {
             try {
                 const text = event.target?.result as string;
-                const data: AppDataBackup = JSON.parse(text);
+                const data = JSON.parse(text) as Partial<AppDataBackup>;
 
-                if (data && Array.isArray(data.myAccounts) && Array.isArray(data.suppliers)) {
-                    if (window.confirm("Voulez-vous vraiment importer ces données ? Cela écrasera toutes les données existantes (comptes et fournisseurs). Cette action est irréversible.")) {
-                        onImportData(data);
+                if (data && data.version === 1 && Array.isArray(data.myAccounts) && Array.isArray(data.suppliers)) {
+                    if (window.confirm("Vous êtes sur le point de remplacer TOUTES les données actuelles (comptes et fournisseurs) par le contenu de ce fichier. Cette action est irréversible. Voulez-vous continuer ?")) {
+                        onImportData(data as AppDataBackup);
                     }
                 } else {
-                    throw new Error("Invalid file structure.");
+                    if (data && data.version !== 1) {
+                        alert("Erreur: Le fichier de sauvegarde provient d'une version incompatible de l'application.");
+                    } else {
+                        alert("Erreur: Le fichier de sauvegarde est invalide ou corrompu. Structure de données incorrecte.");
+                    }
                 }
             } catch (error) {
                 console.error("Failed to import data:", error);
-                alert("Erreur: Le fichier de sauvegarde est invalide ou corrompu. Impossible d'importer les données.");
+                alert("Erreur: Impossible de lire le fichier. Assurez-vous qu'il s'agit d'un fichier de sauvegarde JSON valide et non corrompu.");
             } finally {
                 if (e.target) {
                     e.target.value = '';
@@ -266,10 +269,10 @@ const MyAccount: React.FC<MyAccountProps> = ({ accounts, suppliers, onUpdateAcco
                 </button>
             </div>
             
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-700 border-b border-gray-200 pb-3 mb-4">Importer / Exporter les Données</h2>
+            <div className="bg-gray-50 p-6 rounded-lg shadow-sm border border-gray-200">
+                <h2 className="text-lg font-semibold text-gray-700 border-b border-gray-200 pb-3 mb-4">Sauvegarde et Transfert de Données</h2>
                 <p className="text-sm text-gray-600 mb-4">
-                    Sauvegardez vos données (comptes et fournisseurs) dans un fichier pour les transférer sur un autre navigateur ou pour les conserver en sécurité.
+                    Les données de cette application sont sauvegardées uniquement dans votre navigateur actuel. Pour utiliser vos données sur un autre navigateur ou un autre ordinateur, vous devez d'abord les <strong>exporter</strong> dans un fichier, puis les <strong>importer</strong> sur le nouvel appareil.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4">
                     <input

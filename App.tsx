@@ -109,14 +109,35 @@ const App: React.FC = () => {
   };
   
   const handleImportData = (data: AppDataBackup) => {
-    if (data && Array.isArray(data.suppliers) && Array.isArray(data.myAccounts)) {
+    if (!data || !Array.isArray(data.suppliers) || !Array.isArray(data.myAccounts)) {
+      alert("Erreur: Le fichier de sauvegarde est invalide ou corrompu.");
+      return;
+    }
+
+    try {
+      const suppliersJson = JSON.stringify(data.suppliers);
+      const myAccountsJson = JSON.stringify(data.myAccounts);
+
+      // Save to localStorage first. If this fails, the state won't be updated.
+      localStorage.setItem('suppliers', suppliersJson);
+      localStorage.setItem('myAccounts', myAccountsJson);
+
+      // If storage is successful, update the state to reflect the changes in the UI.
       setSuppliers(data.suppliers);
       setMyAccounts(data.myAccounts);
+
       alert('Données importées avec succès !');
-    } else {
-      alert("Erreur: Le fichier de sauvegarde est invalide ou corrompu.");
+
+    } catch (error) {
+      console.error("Failed to import and save data:", error);
+      let errorMessage = "Erreur: Impossible d'importer les données. Le stockage local est peut-être plein.";
+      if (error instanceof DOMException && (error.name === 'QuotaExceededError' || error.name === 'NS_ERROR_DOM_QUOTA_REACHED')) {
+          errorMessage += "\n\nLa cause est probablement un fichier PDF trop volumineux (papier à en-tête) dans l'un des comptes.";
+      }
+      alert(errorMessage);
     }
   };
+
 
   const handleNavigate = (page: Page) => {
     setCurrentPage(page);
