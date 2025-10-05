@@ -13,6 +13,7 @@ type Page = 'newTransfer' | 'manageSuppliers' | 'myAccount';
 
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<Page>('newTransfer');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const [suppliers, setSuppliers] = useState<Supplier[]>(() => {
     try {
@@ -107,6 +108,11 @@ const App: React.FC = () => {
     );
   };
 
+  const handleNavigate = (page: Page) => {
+    setCurrentPage(page);
+    setIsSidebarOpen(false);
+  };
+
   const renderContent = () => {
     switch (currentPage) {
       case 'newTransfer':
@@ -134,19 +140,23 @@ const App: React.FC = () => {
   }
 
   return (
-    <main className="min-h-screen w-full flex font-sans">
-      {/* Sidebar Navigation */}
-      <Sidebar currentPage={currentPage} onNavigate={setCurrentPage} />
+    <div className="bg-gray-50 min-h-screen font-sans">
+      <Sidebar 
+        currentPage={currentPage} 
+        onNavigate={handleNavigate}
+        isSidebarOpen={isSidebarOpen}
+        setIsSidebarOpen={setIsSidebarOpen}
+      />
       
       {/* Main Content Area */}
-      <div className="flex-1 bg-gray-50 flex flex-col overflow-y-auto">
-        <Header />
-        <div className="flex-1 p-6 md:p-8">
+      <div className="md:pl-64 flex flex-col min-h-screen">
+        <Header onMenuClick={() => setIsSidebarOpen(true)} />
+        <main className="flex-1 p-6 md:p-8">
           {renderContent()}
-        </div>
+        </main>
         <Footer />
       </div>
-    </main>
+    </div>
   );
 };
 

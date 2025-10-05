@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useEffect } from 'react';
 import { MyAccountDetails } from '../types';
 
@@ -181,11 +182,11 @@ const MyAccount: React.FC<MyAccountProps> = ({ accounts, onUpdateAccount, onDele
 
     return (
         <div className="space-y-6 max-w-4xl mx-auto">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
                 <h1 className="text-2xl font-bold text-gray-800">Mes Comptes</h1>
                 <button
                     type="button"
-                    className="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 flex items-center space-x-2"
+                    className="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 flex items-center justify-center space-x-2"
                     onClick={handleOpenAddModal}
                 >
                     <PlusIcon />

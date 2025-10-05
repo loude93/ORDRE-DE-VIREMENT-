@@ -1,3 +1,4 @@
+
 // FIX: Importing React is necessary for JSX syntax and to use React types.
 import React from 'react';
 
@@ -20,38 +21,56 @@ const NavItem: React.FC<{ icon: React.ReactElement; label: string; active?: bool
 interface SidebarProps {
   currentPage: Page;
   onNavigate: (page: Page) => void;
+  isSidebarOpen: boolean;
+  setIsSidebarOpen: (isOpen: boolean) => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ currentPage, onNavigate }) => {
+const Sidebar: React.FC<SidebarProps> = ({ currentPage, onNavigate, isSidebarOpen, setIsSidebarOpen }) => {
   return (
-    <div className="w-64 bg-gray-800 text-white p-4 flex flex-col">
-      <div className="flex items-center space-x-2 mb-10 p-3">
-         <svg className="h-8 w-8 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-        </svg>
-        <span className="text-xl font-bold">RASMAL GROUP</span>
+    <>
+      {/* Overlay for mobile */}
+      <div 
+        className={`fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden transition-opacity ${isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        onClick={() => setIsSidebarOpen(false)}
+        aria-hidden="true"
+      ></div>
+
+      <div className={`fixed top-0 left-0 h-full w-64 bg-gray-800 text-white p-4 flex flex-col z-30 transform transition-transform duration-300 ease-in-out md:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="flex items-center justify-between mb-10">
+          <div className="flex items-center space-x-2">
+            <svg className="h-8 w-8 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            <span className="text-xl font-bold">RASMAL GROUP</span>
+          </div>
+          <button onClick={() => setIsSidebarOpen(false)} className="md:hidden p-2 text-gray-400 hover:text-white" aria-label="Close menu">
+            <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <nav className="flex-1 space-y-2">
+          <NavItem 
+            icon={<PlusCircleIcon />} 
+            label="Nouveau Virement" 
+            active={currentPage === 'newTransfer'}
+            onClick={() => onNavigate('newTransfer')}
+          />
+          <NavItem 
+            icon={<UsersIcon />}
+            label="Gérer Fournisseurs" 
+            active={currentPage === 'manageSuppliers'}
+            onClick={() => onNavigate('manageSuppliers')}
+          />
+          <NavItem 
+            icon={<UserCircleIcon />}
+            label="Mon Compte" 
+            active={currentPage === 'myAccount'}
+            onClick={() => onNavigate('myAccount')}
+          />
+        </nav>
       </div>
-      <nav className="flex-1 space-y-2">
-        <NavItem 
-          icon={<PlusCircleIcon />} 
-          label="Nouveau Virement" 
-          active={currentPage === 'newTransfer'}
-          onClick={() => onNavigate('newTransfer')}
-        />
-        <NavItem 
-          icon={<UsersIcon />}
-          label="Gérer Fournisseurs" 
-          active={currentPage === 'manageSuppliers'}
-          onClick={() => onNavigate('manageSuppliers')}
-        />
-        <NavItem 
-          icon={<UserCircleIcon />}
-          label="Mon Compte" 
-          active={currentPage === 'myAccount'}
-          onClick={() => onNavigate('myAccount')}
-        />
-      </nav>
-    </div>
+    </>
   );
 };
 

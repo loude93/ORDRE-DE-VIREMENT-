@@ -1,4 +1,5 @@
 
+
 import React, { useState, useRef } from 'react';
 import { Supplier } from '../types';
 
@@ -191,12 +192,12 @@ const ManageSuppliers: React.FC<ManageSuppliersProps> = ({ suppliers, onAddSuppl
     return (
         <div className="space-y-6 max-w-4xl mx-auto">
             <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept=".csv,text/csv" />
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
                 <h1 className="text-2xl font-bold text-gray-800">Gestion des Fournisseurs</h1>
                 <div className="flex items-center space-x-2">
                     <button
                         type="button"
-                        className="bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 transition-colors duration-200 flex items-center space-x-2"
+                        className="bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 transition-colors duration-200 flex items-center justify-center space-x-2 flex-1 sm:flex-none"
                         onClick={handleImportClick}
                     >
                         <ImportIcon />
@@ -204,7 +205,7 @@ const ManageSuppliers: React.FC<ManageSuppliersProps> = ({ suppliers, onAddSuppl
                     </button>
                     <button
                         type="button"
-                        className="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 flex items-center space-x-2"
+                        className="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 flex items-center justify-center space-x-2 flex-1 sm:flex-none"
                         onClick={openModalForAdd}
                     >
                         <PlusIcon />
