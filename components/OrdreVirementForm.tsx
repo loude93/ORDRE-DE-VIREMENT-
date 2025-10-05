@@ -265,6 +265,11 @@ const OrdreVirementForm: React.FC<OrdreVirementFormProps> = ({ suppliers, accoun
             const dateTextWidth = font.widthOfTextAtSize(dateText, fontSize);
             firstPage.drawText(dateText, { x: RIGHT_ALIGN_X - dateTextWidth, y: dateY, font, size: fontSize, color: rgb(0, 0, 0) });
             
+            // Add bank address below date
+            const bankAddressText = selectedAccount.bankAddress;
+            const bankAddressTextWidth = font.widthOfTextAtSize(bankAddressText, fontSize);
+            firstPage.drawText(bankAddressText, { x: RIGHT_ALIGN_X - bankAddressTextWidth, y: dateY - 15, font, size: fontSize, color: rgb(0, 0, 0) });
+
             // Content
             let yPos = dateY - 80;
             const lineHeight = 18;
@@ -448,6 +453,17 @@ const OrdreVirementForm: React.FC<OrdreVirementFormProps> = ({ suppliers, accoun
             page.drawText(dateText, {
                 x: rightAlignX - dateTextWidth,
                 y: 180,
+                font: font,
+                size: 10,
+                color: secondaryColor,
+            });
+
+            // Add bank address below date
+            const bankAddressText = selectedAccount.bankAddress;
+            const bankAddressTextWidth = font.widthOfTextAtSize(bankAddressText, 10);
+            page.drawText(bankAddressText, {
+                x: rightAlignX - bankAddressTextWidth,
+                y: 180 - 15,
                 font: font,
                 size: 10,
                 color: secondaryColor,
