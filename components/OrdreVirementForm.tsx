@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import { CURRENCIES } from '../constants';
 import { Supplier, MyAccountDetails } from '../types';
@@ -288,7 +289,7 @@ const OrdreVirementForm: React.FC<OrdreVirementFormProps> = ({ suppliers, accoun
             drawLine(`Objet : ${transferType}`, true);
             yPos -= lineHeight * 1.5;
 
-            drawLine("Madame, Monsieur,");
+            drawLine("Messieurs,");
             yPos -= lineHeight;
             
             drawLine(`Par le débit de notre compte N° ${selectedAccount.rib}, ouvert à vos livres`);
@@ -340,6 +341,10 @@ const OrdreVirementForm: React.FC<OrdreVirementFormProps> = ({ suppliers, accoun
             yPos -= lineHeight;
 
             drawLine(`Motif : ${purpose}`, false, true);
+
+            yPos -= lineHeight * 2;
+
+            drawLine("Je vous prie d’agréer, Monsieur, l’expression de mes salutations distinguées.");
             
             // Signature
             const signatureY = SIGNATURE_Y_FROM_BOTTOM;
@@ -405,7 +410,7 @@ const OrdreVirementForm: React.FC<OrdreVirementFormProps> = ({ suppliers, accoun
             drawTextLine(`Objet : ${transferType}`, true);
             currentY -= lineHeight * 1.5;
 
-            drawTextLine("Madame, Monsieur,");
+            drawTextLine("Messieurs,");
             currentY -= lineHeight;
 
             drawTextLine(`Par le débit de notre compte N° ${selectedAccount.rib}, ouvert à vos livres`);
@@ -446,6 +451,10 @@ const OrdreVirementForm: React.FC<OrdreVirementFormProps> = ({ suppliers, accoun
             page.drawText('Motif :', { x: margin + 20, y: currentY, font: font, size: baseFontSize });
             page.drawText(purpose, { x: margin + 150, y: currentY, font: boldFont, size: baseFontSize });
             currentY -= lineHeight;
+
+            // Add closing salutation
+            currentY -= lineHeight * 2; // Add some space
+            drawTextLine("Je vous prie d’agréer, Monsieur, l’expression de mes salutations distinguées.");
 
             // Date & Signature
             const dateText = `Fait à Casablanca, le ${date}`;
