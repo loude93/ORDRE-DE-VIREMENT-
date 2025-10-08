@@ -344,7 +344,7 @@ const OrdreVirementForm: React.FC<OrdreVirementFormProps> = ({ suppliers, accoun
 
             yPos -= lineHeight * 2;
 
-            drawLine("Je vous prie d’agréer, Monsieur, l’expression de mes salutations distinguées.");
+            drawLine("Je vous prie d’agréer, messieurs, l’expression de mes salutations distinguées.");
             
             // Signature
             const signatureY = SIGNATURE_Y_FROM_BOTTOM;
@@ -454,7 +454,7 @@ const OrdreVirementForm: React.FC<OrdreVirementFormProps> = ({ suppliers, accoun
 
             // Add closing salutation
             currentY -= lineHeight * 2; // Add some space
-            drawTextLine("Je vous prie d’agréer, Monsieur, l’expression de mes salutations distinguées.");
+            drawTextLine("Je vous prie d’agréer, messieurs, l’expression de mes salutations distinguées.");
 
             // Date & Signature
             const dateText = `Fait à Casablanca, le ${date}`;
